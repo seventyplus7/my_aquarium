@@ -1,0 +1,49 @@
+services:
+  django:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./myaquarium:/usr/src/app
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - REDIS_HOST=cache
+      - REDIS_PORT=6379
+      - REDIS_USER=root
+      - REDIS_PASSWORD=adminadmin
+      - AWS_ACCESS_KEY_ID=10chKVCsTPPpy3wf7WnD
+      - AWS_SECRET_ACCESS_KEY=ZQ3pfRCuErDgzr0R3r2ntZI3JXOuNcoOsXkADvb9
+      - AWS_STORAGE_BUCKET_NAME=mytank
+    depends_on:
+      - db
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  cache:
+    image: redis
+    command: redis-server --save 20 1 --requirepass adminadmin
+    volumes:
+      - cache:/data
+  file_store:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=fsuser
+      - MINIO_ROOT_PASSWORD=password
+    volumes:
+      - files:/data
+
+volumes:
+  cache:
+  files:
